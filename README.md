@@ -4,7 +4,7 @@
 - Shafa Nabilah Hanin / 5025211222
 - Nizam Hakim Santoso / 5025211209
 
-# Lapres Praktikum 4
+# Lapres Praktikum 5
 ## Daftar Isi
 - [Topologi](#topologi)
 - [Network Configuration](#network-configuration)
@@ -408,6 +408,13 @@ iptables -I INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 #### Sein
 ```
+#No 8
+iptables -A INPUT -s 192.220.1.124/30 -m time --datestart 2023-12-10 --datestop 2024-02-15 -j REJECT
+
+#No 6
+iptables -A INPUT -m time --timestart 12:00 --timestop 13:00 --weekdays Mon,Tue,Wed,Thu -j REJECT
+iptables -A INPUT -m time --timestart 11:00 --timestop 13:00 --weekdays Fri -j REJECT
+
 #No 5
 iptables -A INPUT -m time --timestart 16:01 --timestop 23:59 --weekdays Mon,Tue,Wed,Thu,Fri -j REJECT
 iptables -A INPUT -m time --timestart 00:00 --timestop 07:59 --weekdays Mon,Tue,Wed,Thu,Fri -j REJECT
@@ -420,6 +427,13 @@ iptables -A INPUT -p tcp --dport 22 -j REJECT
 
 #### Stark
 ```
+#No 8
+iptables -A INPUT -s 192.220.1.124/30 -m time --datestart 2023-12-10 --datestop 2024-02-15 -j REJECT
+
+#No 6
+iptables -A INPUT -m time --timestart 12:00 --timestop 13:00 --weekdays Mon,Tue,Wed,Thu -j REJECT
+iptables -A INPUT -m time --timestart 11:00 --timestop 13:00 --weekdays Fri -j REJECT
+
 #No 5
 iptables -A INPUT -m time --timestart 16:01 --timestop 23:59 --weekdays Mon,Tue,Wed,Thu,Fri -j REJECT
 iptables -A INPUT -m time --timestart 00:00 --timestop 07:59 --weekdays Mon,Tue,Wed,Thu,Fri -j REJECT
@@ -608,7 +622,41 @@ Berhasil karena jam 10:00 didalam interval
 > Lalu, karena ternyata terdapat beberapa waktu di mana network administrator dari WebServer tidak bisa stand by, sehingga perlu ditambahkan rule bahwa akses pada hari Senin - Kamis pada jam 12.00 - 13.00 dilarang (istirahat maksi cuy) dan akses di hari Jumat pada jam 11.00 - 13.00 juga dilarang (maklum, Jumatan rek).
 
 #### Answer:
+Konfigurasi ini diatur pada `iptables.sh` pada bagian,
+```
+iptables -A INPUT -m time --timestart 12:00 --timestop 13:00 --weekdays Mon,Tue,Wed,Thu -j REJECT
+iptables -A INPUT -m time --timestart 11:00 --timestop 13:00 --weekdays Fri -j REJECT
+```
+Input pada hari Senin - Kamis pada jam 12:00 - 13:00 dan input pada hari Jumat pada jam 11:00 - 13:00 akan ditolak (jam istirahat).
+
 #### Testing:
+Lakukan penggantian waktu dan tanggal pada Sein dan Stark menjadi Selasa jam 12:30,
+```sh
+date --set="2023-12-19 12:30:00"
+```
+
+Lakukan ping ke Sein dari TurkRegion  
+```sh
+ping 192.220.4.2
+```
+
+Connection refused karena dalam interval jam istirahat (12:00 - 13:00)
+
+![image](https://github.com/NizamHakim/Jarkom-Modul-5-E28-2023/assets/91371703/a4b2ea6d-7ef3-492b-854f-2e2a517022e1)
+
+Lakukan penggantian waktu dan tanggal pada Sein dan Stark menjadi jumat jam 11:30,
+```sh
+date --set="2023-12-22 11:30:00"
+```
+
+Lakukan ping ke Sein dari TurkRegion  
+```sh
+ping 192.220.4.2
+```
+
+Connection refused karena dalam interval jam istirahat (11:00 - 13:00)
+
+![image](https://github.com/NizamHakim/Jarkom-Modul-5-E28-2023/assets/91371703/ced40906-242b-4894-b8a9-98a058c59850)
 
 ### No 7
 > Karena terdapat 2 WebServer, kalian diminta agar setiap client yang mengakses Sein dengan Port 80 akan didistribusikan secara bergantian pada Sein dan Stark secara berurutan dan request dari client yang mengakses Stark dengan port 443 akan didistribusikan secara bergantian pada Sein dan Stark secara berurutan.
@@ -620,7 +668,64 @@ Berhasil karena jam 10:00 didalam interval
 > Karena berbeda koalisi politik, maka subnet dengan masyarakat yang berada pada Revolte dilarang keras mengakses WebServer hingga masa pencoblosan pemilu kepala suku 2024 berakhir. Masa pemilu (hingga pemungutan dan penghitungan suara selesai) kepala suku bersamaan dengan masa pemilu Presiden dan Wakil Presiden Indonesia 2024.
 
 #### Answer:
+Pemilu Presiden dan Wakil Presiden Indonesia 2024 berakhir pada tanggal 15 Februari 2024, sehingga kita perlu memblokir akses subnet revolte dari tanggal 10 Desember 2023 sampai 15 Februari 2024. Konfigurasi ini diatur pada `iptables.sh` pada bagian,
+```
+iptables -A INPUT -s 192.220.1.124/30 -m time --datestart 2023-12-10 --datestop 2024-02-15 -j REJECT
+```
+Semua input dari subnet revolte (192.220.1.124/30) sejak tanggal 10 Desember 2023 sampai 15 Februari 2024 akan di reject
+
 #### Testing:
+Lakukan penggantian waktu dan tanggal pada Sein dan Stark menjadi 19 Desember 2023 jam 10:00:00,
+```sh
+date --set="2023-12-19 10:00:00"
+```
+
+Lakukan ping ke Sein dari Revolte  
+```sh
+ping 192.220.4.2
+```
+Connection refused karena 19 Desember 2023 masih dalam masa pemilu  
+
+![image](https://github.com/NizamHakim/Jarkom-Modul-5-E28-2023/assets/91371703/aa29eef8-b10a-4c46-8642-b681242b4a9d)
+
+Lakukan penggantian waktu dan tanggal pada Sein dan Stark menjadi 13 Februari 2024 jam 10:00:00,
+```sh
+date --set="2024-2-13 10:00:00"
+```
+
+Lakukan ping ke Sein dari Revolte  
+```sh
+ping 192.220.4.2
+```
+Connection refused karena 13 Februari 2024 masih dalam masa pemilu  
+
+![image](https://github.com/NizamHakim/Jarkom-Modul-5-E28-2023/assets/91371703/0e02ce86-d947-43c5-b445-0ec25884cd8f)
+
+Lakukan penggantian waktu dan tanggal pada Sein dan Stark menjadi 15 Februari 2024 jam 10:00:00,
+```sh
+date --set="2024-2-15 10:00:00"
+```
+
+Lakukan ping ke Sein dari Revolte  
+```sh
+ping 192.220.4.2
+```
+Berhasil karena masa pemilu berakhir pada 15 Februari 2024 jam 00:00:00 sedangkan sekarang jam 10:00:00  
+
+![image](https://github.com/NizamHakim/Jarkom-Modul-5-E28-2023/assets/91371703/7723c56f-a3e0-4d74-b6a1-9fef0d54fe25)
+
+Lakukan penggantian waktu dan tanggal pada Sein dan Stark menjadi 19 Februari 2024 jam 10:00:00,
+```sh
+date --set="2024-2-19 10:00:00"
+```
+
+Lakukan ping ke Sein dari Revolte  
+```sh
+ping 192.220.4.2
+```
+Berhasil karena masa pemilu berakhir pada 15 Februari 2024 jam 00:00:00
+
+![image](https://github.com/NizamHakim/Jarkom-Modul-5-E28-2023/assets/91371703/9f695f3c-5eb0-4753-bbe9-b238d77ac96c)
 
 ### No 9
 > Sadar akan adanya potensial saling serang antar kubu politik, maka WebServer harus dapat secara otomatis memblokir  alamat IP yang melakukan scanning port dalam jumlah banyak (maksimal 20 scan port) di dalam selang waktu 10 menit. 
