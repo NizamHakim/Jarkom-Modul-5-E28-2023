@@ -4,7 +4,7 @@
 - Shafa Nabilah Hanin / 5025211222
 - Nizam Hakim Santoso / 5025211209
 
-# Lapres Praktikum 4
+# Lapres Praktikum 5
 ## Daftar Isi
 - [Topologi](#topologi)
 - [Network Configuration](#network-configuration)
