@@ -661,7 +661,7 @@ Connection refused karena dalam interval jam istirahat (11:00 - 13:00)
 ### No 7
 > Karena terdapat 2 WebServer, kalian diminta agar setiap client yang mengakses Sein dengan Port 80 akan didistribusikan secara bergantian pada Sein dan Stark secara berurutan dan request dari client yang mengakses Stark dengan port 443 akan didistribusikan secara bergantian pada Sein dan Stark secara berurutan.
 
-#### Answer:
+#### Answer (Revisi):
 
 Buat konfigurasi `iptables` pada router-router yang berada dekat dengan web server seperti berikut ini:
 
@@ -745,7 +745,7 @@ Berhasil karena masa pemilu berakhir pada 15 Februari 2024 jam 00:00:00
 (clue: test dengan nmap)
 
 
-#### Answer:
+#### Answer (Revisi):
 Karena membutuhkan scanning port, maka dari itu membutuhkan rantai `portscan`. Rantai ini digunakan untuk mengatur rules deteksi port scanning.
 
 ```
@@ -786,7 +786,7 @@ Test dengan nmap
 ### No 10
 > Karena kepala suku ingin tau paket apa saja yang di-drop, maka di setiap node server dan router ditambahkan logging paket yang di-drop dengan standard syslog level. 
 
-#### Answer:
+#### Answer (Revisi):
 
 Buat konfigurasi di bawah pada web server:
 
