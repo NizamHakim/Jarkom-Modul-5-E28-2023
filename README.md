@@ -662,7 +662,20 @@ Connection refused karena dalam interval jam istirahat (11:00 - 13:00)
 > Karena terdapat 2 WebServer, kalian diminta agar setiap client yang mengakses Sein dengan Port 80 akan didistribusikan secara bergantian pada Sein dan Stark secara berurutan dan request dari client yang mengakses Stark dengan port 443 akan didistribusikan secara bergantian pada Sein dan Stark secara berurutan.
 
 #### Answer:
+
+Buat konfigurasi `iptables` pada router-router yang berada dekat dengan web server seperti berikut ini:
+
+```
+iptables -A PREROUTING -t nat -p tcp --dport 80 -d 192.220.4.2 -m statistic --mode nth --every 2 --packet 0 -j DNAT --to-destination 192.220.4.2:80
+iptables -A PREROUTING -t nat -p tcp --dport 80 -d 192.220.4.2 -j DNAT --to-destination 192.220.1.114:80
+iptables -A PREROUTING -t nat -p tcp --dport 443 -d 192.220.1.114 -m statistic --mode nth --every 2 --packet 0 -j DNAT --to-destination 192.220.1.114:443
+iptables -A PREROUTING -t nat -p tcp --dport 443 -d 192.220.1.114 -j DNAT --to-destination 192.220.4.2:443
+```
+
 #### Testing:
+
+- Untuk menjalankan di port 80, masukkan script `while true; do nc -l -p 80 -c 'echo "Stark"'; done` pada Stark dan `while true; do nc -l -p 80 -c 'echo "Sein"'; done` pada Sein. Kemudian lakukan testing menggunakan netcat dengan `nc 192.220.4.2 80`
+- Untuk menjalankan di port 443, masukkan script `while true; do nc -l -p 443 -c 'echo "Stark"'; done` pada Stark dan `while true; do nc -l -p 443 -c 'echo "Sein"'; done` pada Sein. Kemudian lakukan testing menggunakan netcat dengan `nc 192.220.1.114 443`
 
 ### No 8
 > Karena berbeda koalisi politik, maka subnet dengan masyarakat yang berada pada Revolte dilarang keras mengakses WebServer hingga masa pencoblosan pemilu kepala suku 2024 berakhir. Masa pemilu (hingga pemungutan dan penghitungan suara selesai) kepala suku bersamaan dengan masa pemilu Presiden dan Wakil Presiden Indonesia 2024.
@@ -774,4 +787,11 @@ Test dengan nmap
 > Karena kepala suku ingin tau paket apa saja yang di-drop, maka di setiap node server dan router ditambahkan logging paket yang di-drop dengan standard syslog level. 
 
 #### Answer:
-#### Testing:
+
+Buat konfigurasi di bawah pada web server:
+
+```
+iptables -A INPUT -j LOG --log-level debug --log-prefix 'Dropped Packet' -m limit --limit 1/second --limit-burst 10
+```
+
+Itu akan menambahkan aturan pada chain INPUT untuk mengirimkan log pesan ke syslog setiap kali ada paket yang di-drop. Ini akan mencatat pesan log dengan tingkat "debug" dan awalan "Dropped Packet". Pengaturan --limit dan --limit-burst memastikan bahwa tidak terlalu banyak pesan log yang dibuat dalam waktu singkat untuk menghindari kelebihan log.
