@@ -733,7 +733,42 @@ Berhasil karena masa pemilu berakhir pada 15 Februari 2024 jam 00:00:00
 
 
 #### Answer:
+Karena membutuhkan scanning port, maka dari itu membutuhkan rantai `portscan`. Rantai ini digunakan untuk mengatur rules deteksi port scanning.
+
+```
+iptables -N portscan
+
+iptables -A INPUT -m recent --name portscan --update --seconds 600 --hitcount 20 -j DROP
+iptables -A FORWARD -m recent --name portscan --update --seconds 600 --hitcount 20 -j DROP
+
+iptables -A INPUT -m recent --name portscan --set -j ACCEPT
+iptables -A FORWARD -m recent --name portscan --set -j ACCEPT
+
+```
+
+Penjelasan:
+`iptables -N portscan`: Membuat chain (rantai) iptables baru yang disebut "portscan". Ini akan digunakan untuk menangani aturan-aturan khusus terkait deteksi serangan port scanning.
+
+`iptables -A INPUT -m recent --name portscan --update --seconds 600 --hitcount 20 -j DROP`: Ini adalah aturan untuk chain INPUT. Ini berarti bahwa setiap paket yang masuk ke mesin akan diarahkan ke chain "portscan". Jika ada lebih dari 20 paket dalam rentang waktu 600 detik (10 menit), maka paket tersebut akan di-drop (ditolak).
+
+`iptables -A FORWARD -m recent --name portscan --update --seconds 600 --hitcount 20 -j DROP`: Ini adalah aturan untuk chain FORWARD. Ini menangani paket yang di-forward melalui mesin. Aturan ini juga memeriksa apakah ada lebih dari 20 paket dalam rentang waktu 600 detik dan, jika ya, akan menolak paket tersebut.
+
+`iptables -A INPUT -m recent --name portscan --set -j ACCEPT`: Aturan ini memberikan instruksi untuk menyetel hitcount ke 0 dan memperbarui timestamp pada setiap paket yang melewati chain "portscan" pada INPUT. Ini diatur untuk menerima paket-paket ini.
+
+`iptables -A FORWARD -m recent --name portscan --set -j ACCEPT`: Aturan yang serupa dengan sebelumnya, tetapi berlaku untuk chain FORWARD. Ini memperbarui timestamp dan mengatur hitcount ke 0 untuk paket yang di-forward melalui mesin.
+
+Dengan rules di atas, skrip mencoba mendeteksi serangan port scanning dengan menghitung jumlah paket yang mencoba terhubung ke banyak port dalam rentang waktu tertentu. Jika jumlah ini melebihi batas tertentu, paket-paket tersebut akan ditolak untuk mencegah serangan port scanning yang berpotensi merugikan.
+
 #### Testing:
+
+Lakukan ping ke Web Server
+
+![no. 9](https://github.com/NizamHakim/Jarkom-Modul-5-E28-2023/assets/120880399/a46ac479-534f-4ef9-b596-b5c345577704)
+
+Test dengan nmap
+
+![nmap-test](https://github.com/NizamHakim/Jarkom-Modul-5-E28-2023/assets/120880399/e9bdf472-20e2-418f-a437-214ea1b8b740)
+
 
 ### No 10
 > Karena kepala suku ingin tau paket apa saja yang di-drop, maka di setiap node server dan router ditambahkan logging paket yang di-drop dengan standard syslog level. 
